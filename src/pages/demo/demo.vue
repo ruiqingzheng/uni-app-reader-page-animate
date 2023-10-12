@@ -28,6 +28,13 @@
         </button>
       </view>
 
+      <slider
+        value="50"
+        activeColor="#FFCC33"
+        backgroundColor="#ff0000"
+        block-color="#8A6DE9"
+        block-size="20" />
+
       <view class="test">@apply</view>
     </view>
   </view>
