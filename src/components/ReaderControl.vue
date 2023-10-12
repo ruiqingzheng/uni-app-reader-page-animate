@@ -10,7 +10,7 @@
           'active:bg-orange-300 rounded  h-8 w-20 text-xs text-white flex justify-center items-center ',
           `${applyCanceled ? 'bg-gray-400' : 'bg-orange-400'}`
         ]">
-        {{ '播放' }}
+        {{ playing ? '停止' : '播放' }}
       </button>
     </view>
 
@@ -30,6 +30,12 @@
 <script setup lang="ts">
 import BottomControl from '@/components/BottomControl.vue'
 
+const props = defineProps<{
+  play: () => void
+  stop: () => void
+  playing: boolean
+}>()
+
 const systemInfo = ref(uni.getSystemInfoSync())
 
 const sliderChangeText = (e: { detail: { value: string } }) => {
@@ -41,9 +47,7 @@ const sliderChangeSpeed = (e: { detail: { value: string } }) => {
 }
 
 const onButtonClick = () => {
-  // uni.navigateTo({
-  //   url: `/pages/demo/demo`
-  // })
+  props.playing ? props.stop() : props.play()
 }
 
 const applyCanceled = false
