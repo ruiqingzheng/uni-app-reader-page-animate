@@ -18,7 +18,7 @@ const classes = computed(() => {
 
 const styles = computed(() => {
   const defaultStyle = {
-    backgroundColor: 'rgba(255,255,255,0.8)'
+    backgroundColor: 'rgba(255,255,255,0.9)'
   }
   return typeof props._style === 'object' &&
     Object.keys(props._style).length > 0

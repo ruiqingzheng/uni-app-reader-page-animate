@@ -24,12 +24,15 @@
       :stop="stop"
       :onChangeSpeed="onChangeSpeed"
       :onChangeFontSize="onChangeFontSize"
+      :fontsize="fontsize"
+      :speedValue="speedValue"
       :playing="playing"></reader-control>
   </view>
 </template>
 <script lang="ts">
 import { IScrollDetail, mockData } from '@/helper'
 import ReaderControl from '@/components/ReaderControl.vue'
+import { useDebounce } from '@/hooks/useDebounce'
 
 export default {
   components: { ReaderControl },
@@ -43,11 +46,12 @@ export default {
     const speedValue = ref(minSpeed) // 滚动速度, 每次滚动的像素
     const fontsize = ref(minFontSize) // fontsize
     const lines = mockData()
-    const playing = ref(false)
+    const playing = ref(false) // [x] 用最少的变量来表示停止还是播放
     const screenHeight = systemInfo.value.screenHeight
     const screenWidth = systemInfo.value.screenWidth
-    const scrollViewHeight = screenHeight
+    const scrollViewHeight = screenHeight // [x] 设置滚动框的高度就是屏幕高度
     const contentHeight = ref(screenHeight)
+    const getContentHeightDebounceDelay = 1000 // [x] 频繁调整字体导致内容高度变化后的计算卡顿, 需要debounce
 
     const isInterSectionBottom = () => {
       const maxTop = contentHeight.value - scrollViewHeight
@@ -57,23 +61,27 @@ export default {
     }
     const instance = getCurrentInstance()
 
-    onMounted(() => {
-      setTimeout(() => {
-        const query = uni.createSelectorQuery().in(instance)
-        query
-          .select('#scroll-view-content')
-          .boundingClientRect((data) => {
-            // console.log(
-            //   'content height:>> ',
-            //   (data as { height: number }).height,
-            //   'scrollHeight: ',
-            //   scrollViewHeight
-            // )
-            contentHeight.value = (data as { height: number }).height
-          })
-          .exec()
-      }, 0)
-    })
+    const getContentHeight = useDebounce(
+      _getContentHeight,
+      getContentHeightDebounceDelay
+    )
+
+    function _getContentHeight() {
+      console.log('debounce 延时... _getContentHeight!') // 验证debounce是否生效
+      const query = uni.createSelectorQuery().in(instance)
+      query
+        .select('#scroll-view-content')
+        .boundingClientRect((data) => {
+          // console.log(
+          //   'content height:>> ',
+          //   (data as { height: number }).height,
+          //   'scrollHeight: ',
+          //   scrollViewHeight
+          // )
+          contentHeight.value = (data as { height: number }).height
+        })
+        .exec()
+    }
 
     // 移动到顶部, 为了不突兀 延迟1秒
     const moveToTop = () => {
@@ -129,7 +137,18 @@ export default {
       const newFontSize = minFontSize + y / 10
       console.log('newFontSize :>> ', newFontSize)
       fontsize.value = newFontSize
+      // [x] 当改变fontsize 后, 需要重新用新高度来计算是否到底部,因为内容高度发生变化
+      getContentHeight()
     }
+
+    onMounted(() => {
+      getContentHeight()
+    })
+
+    onMounted(() => {
+      // [x] 页面加载则自动播放,  但要在 contentHeight 确定后才能开始
+      setTimeout(() => play(), getContentHeightDebounceDelay + 200)
+    })
 
     return {
       play,
@@ -144,7 +163,8 @@ export default {
       scrollToTop,
       onChangeSpeed,
       onChangeFontSize,
-      fontsize
+      fontsize,
+      speedValue
     }
   }
 }

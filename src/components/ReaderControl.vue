@@ -1,6 +1,6 @@
 <template>
   <bottom-control
-    _class="grid grid-cols-3 place-content-center  px-0 h-40"
+    _class="grid grid-cols-3 place-content-center  px-0 h-40 opacity-100"
     :style="{ width: `${systemInfo.windowWidth}px` }">
     <view class="col-span-1">
       <button
@@ -8,7 +8,7 @@
         @click="onButtonClick"
         :class="[
           'active:bg-orange-300 rounded  h-8 w-20 text-xs text-white flex justify-center items-center ',
-          `${applyCanceled ? 'bg-gray-400' : 'bg-orange-400'}`
+          `${playing ? 'bg-slate-500' : 'bg-orange-400'}`
         ]">
         {{ playing ? '停止' : '播放' }}
       </button>
@@ -16,12 +16,29 @@
 
     <view class="col-span-2 flex flex-col px-2">
       <view class="w-full flex flex-col">
-        <text class="w-full text-right text-xs">文字大小</text>
-        <slider value="1" @change="sliderChangeText" step="5" />
+        <text class="w-full text-right text-xs">文字大小({{ fontsize }})</text>
+
+        <slider
+          value="1"
+          @change="sliderChangeText"
+          step="5"
+          activeColor="#FFCC33"
+          backgroundColor="rgb(100 116 139)"
+          block-color="rgb(251 146 60)"
+          block-size="20" />
       </view>
       <view class="w-full flex flex-col">
-        <text class="w-full text-right text-xs">速度快慢</text>
-        <slider value="1" @change="sliderChangeSpeed" step="1" />
+        <text class="w-full text-right text-xs">
+          速度快慢({{ speedValue }})
+        </text>
+        <slider
+          value="1"
+          @change="sliderChangeSpeed"
+          step="1"
+          activeColor="#FFCC33"
+          backgroundColor="rgb(100 116 139)"
+          block-color="rgb(251 146 60)"
+          block-size="20" />
       </view>
     </view>
   </bottom-control>
@@ -36,6 +53,8 @@ const props = defineProps<{
   playing: boolean
   onChangeSpeed: (x: number) => void
   onChangeFontSize: (x: number) => void
+  speedValue: number
+  fontsize: number
 }>()
 
 const systemInfo = ref(uni.getSystemInfoSync())
@@ -55,6 +74,4 @@ const sliderChangeSpeed = (e: { detail: { value: string } }) => {
 const onButtonClick = () => {
   props.playing ? props.stop() : props.play()
 }
-
-const applyCanceled = false
 </script>
