@@ -15,13 +15,15 @@
         :style="{ width: `${screenWidth - 40}px` }">
         <view v-for="line in lines" :key="line.id" class="article-line">
           <text class="text-gray-500 text-xs mr-2 -mt-5">{{ line.id }}</text>
-          <text>{{ line.txt }}</text>
+          <text :style="{ fontSize: `${fontsize}px` }">{{ line.txt }}</text>
         </view>
       </view>
     </scroll-view>
     <reader-control
       :play="play"
       :stop="stop"
+      :onChangeSpeed="onChangeSpeed"
+      :onChangeFontSize="onChangeFontSize"
       :playing="playing"></reader-control>
   </view>
 </template>
@@ -36,6 +38,10 @@ export default {
     const scrollViewRef = ref(null)
     const scrollTop = ref(0) // 记录当前的滚动位置 scrollTop
     const scrollToTop = ref(0) // 滚动到的位置scrollTo  , 范围是 0 ~ contentHeight - scrollViewHeight
+    const minSpeed = 0.5
+    const minFontSize = 12
+    const speedValue = ref(minSpeed) // 滚动速度, 每次滚动的像素
+    const fontsize = ref(minFontSize) // fontsize
     const lines = mockData()
     const playing = ref(false)
     const screenHeight = systemInfo.value.screenHeight
@@ -82,10 +88,10 @@ export default {
     }
 
     const _play = (ts: number) => {
-      console.log('play...', ts)
+      // console.log('play...', ts)
       // scroll
       // scrollToTop.value = scrollTop.value + 10 // 不需要读取scrollTop
-      scrollToTop.value += 10
+      scrollToTop.value += speedValue.value
 
       const isBottom = isInterSectionBottom()
       // 暂停或到达底部都退出滚动
@@ -111,8 +117,18 @@ export default {
     }
 
     const onScroll = (e: { detail: IScrollDetail }) => {
-      console.log('scroll e :>> ', e.detail)
+      // console.log('scroll e :>> ', e.detail)
       scrollTop.value = e.detail.scrollTop
+    }
+
+    const onChangeSpeed = (x: number) => {
+      speedValue.value = minSpeed + x / 20
+    }
+
+    const onChangeFontSize = (y: number) => {
+      const newFontSize = minFontSize + y / 10
+      console.log('newFontSize :>> ', newFontSize)
+      fontsize.value = newFontSize
     }
 
     return {
@@ -125,13 +141,16 @@ export default {
       scrollViewRef,
       contentHeight,
       onScroll,
-      scrollToTop
+      scrollToTop,
+      onChangeSpeed,
+      onChangeFontSize,
+      fontsize
     }
   }
 }
 </script>
 <style lang="scss" scoped>
 .article-line {
-  @apply h-20 text-[22px] flex justify-start items-center;
+  @apply py-2 text-[22px] flex justify-start items-center;
 }
 </style>

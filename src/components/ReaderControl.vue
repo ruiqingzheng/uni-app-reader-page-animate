@@ -17,11 +17,11 @@
     <view class="col-span-2 flex flex-col px-2">
       <view class="w-full flex flex-col">
         <text class="w-full text-right text-xs">文字大小</text>
-        <slider value="60" @change="sliderChangeText" step="5" />
+        <slider value="1" @change="sliderChangeText" step="5" />
       </view>
       <view class="w-full flex flex-col">
         <text class="w-full text-right text-xs">速度快慢</text>
-        <slider value="60" @change="sliderChangeSpeed" step="5" />
+        <slider value="1" @change="sliderChangeSpeed" step="1" />
       </view>
     </view>
   </bottom-control>
@@ -34,15 +34,21 @@ const props = defineProps<{
   play: () => void
   stop: () => void
   playing: boolean
+  onChangeSpeed: (x: number) => void
+  onChangeFontSize: (x: number) => void
 }>()
 
 const systemInfo = ref(uni.getSystemInfoSync())
 
 const sliderChangeText = (e: { detail: { value: string } }) => {
+  const _v = parseInt(e.detail.value) > 0 ? parseInt(e.detail.value) : 1
+  props.onChangeFontSize(_v)
   console.log('txtSize value 发生变化：' + e.detail.value)
 }
 
 const sliderChangeSpeed = (e: { detail: { value: string } }) => {
+  const _v = parseInt(e.detail.value) > 0 ? parseInt(e.detail.value) : 1
+  props.onChangeSpeed(_v)
   console.log('speed value 发生变化：' + e.detail.value)
 }
 
