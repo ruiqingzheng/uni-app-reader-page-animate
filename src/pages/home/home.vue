@@ -14,7 +14,7 @@
         id="scroll-view-content"
         :style="{ width: `${screenWidth - 40}px` }">
         <view v-for="line in lines" :key="line.id" class="article-line">
-          <text class="text-gray-500 text-xs mr-2 -mt-5">{{ line.id }}</text>
+          <text class="text-gray-500 text-xs mr-2 mt-1">{{ line.id }}</text>
           <text :style="{ fontSize: `${fontsize}px` }">{{ line.txt }}</text>
         </view>
       </view>
@@ -54,10 +54,13 @@ export default {
     const getContentHeightDebounceDelay = 1000 // [x] 频繁调整字体导致内容高度变化后的计算卡顿, 需要debounce
 
     const isInterSectionBottom = () => {
+      // contentHeight , scrollViewHeight, scrollTop 这几个参数只要为 0 或者不存在, 则都不是底部
+      if (!contentHeight.value || !scrollViewHeight || !!scrollTop.value)
+        return false
       const maxTop = contentHeight.value - scrollViewHeight
       if (scrollToTop.value >= maxTop) return true
       // 或者距离底部 10px 就认为到底了
-      return maxTop - scrollTop.value < 10
+      return maxTop - scrollTop.value < 1
     }
     const instance = getCurrentInstance()
 
@@ -98,8 +101,10 @@ export default {
     const _play = (ts: number) => {
       // console.log('play...', ts)
       // scroll
-      // scrollToTop.value = scrollTop.value + 10 // 不需要读取scrollTop
-      scrollToTop.value += speedValue.value
+      // [x] 不读取实际的 scrollTop 则不支持播放中间用户手动滚动, 必须先停止;
+      // [x] 每次根据实际的 scrollTop 再来滚动 , 有更好的体验
+      // scrollToTop.value += speedValue.value   // 不支持播放其间手动滚动, 需要先停止
+      scrollToTop.value = scrollTop.value + speedValue.value
 
       const isBottom = isInterSectionBottom()
       // 暂停或到达底部都退出滚动
@@ -125,8 +130,9 @@ export default {
     }
 
     const onScroll = (e: { detail: IScrollDetail }) => {
-      // console.log('scroll e :>> ', e.detail)
-      scrollTop.value = e.detail.scrollTop
+      console.log('scroll e scrollTop:>> ', e.detail.scrollTop)
+      const _top = e.detail.scrollTop < 0 ? 0 : e.detail.scrollTop
+      scrollTop.value = _top
     }
 
     const onChangeSpeed = (x: number) => {
@@ -171,6 +177,6 @@ export default {
 </script>
 <style lang="scss" scoped>
 .article-line {
-  @apply py-2 text-[22px] flex justify-start items-center;
+  @apply py-2 text-[22px] flex justify-start items-start;
 }
 </style>
