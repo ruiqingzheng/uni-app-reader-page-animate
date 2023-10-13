@@ -54,9 +54,6 @@ export default {
     const getContentHeightDebounceDelay = 1000 // [x] 频繁调整字体导致内容高度变化后的计算卡顿, 需要debounce
 
     const isInterSectionBottom = () => {
-      // contentHeight , scrollViewHeight, scrollTop 这几个参数只要为 0 或者不存在, 则都不是底部
-      if (!contentHeight.value || !scrollViewHeight || !!scrollTop.value)
-        return false
       const maxTop = contentHeight.value - scrollViewHeight
       if (scrollToTop.value >= maxTop) return true
       // 或者距离底部 10px 就认为到底了
@@ -99,12 +96,20 @@ export default {
     }
 
     const _play = (ts: number) => {
-      // console.log('play...', ts)
       // scroll
       // [x] 不读取实际的 scrollTop 则不支持播放中间用户手动滚动, 必须先停止;
       // [x] 每次根据实际的 scrollTop 再来滚动 , 有更好的体验
       // scrollToTop.value += speedValue.value   // 不支持播放其间手动滚动, 需要先停止
-      scrollToTop.value = scrollTop.value + speedValue.value
+
+      //! [ 🐞fix ] 播放期间 当手动拖滚动到最顶端时候 , scrollTop 为0 ,speedValue 很小, 于是 scrollToTop 被设置为很小的值
+      //! 这个很小的 scrollToTop 设置给 scrollView 后被忽略为0 , 下次又到这个循环中scrollTop 读取又是 0 , 于是出现播放状态,但没有滚动的情况
+      //! 解决方法就是 随机加上一个很小的数字, 让uniapp的scrollView不要忽略传递的  scrollToTop, 只需在很小的时候才加随机数就可以了
+
+      // scrollToTop.value = scrollTop.value + speedValue.value + Math.random()
+      const _scrollToTop = scrollTop.value + speedValue.value
+      scrollToTop.value =
+        _scrollToTop < 5 ? _scrollToTop + Math.random() : _scrollToTop
+      // console.log('play...', ts, 'scrollToTop:', scrollToTop.value)
 
       const isBottom = isInterSectionBottom()
       // 暂停或到达底部都退出滚动
@@ -130,7 +135,7 @@ export default {
     }
 
     const onScroll = (e: { detail: IScrollDetail }) => {
-      console.log('scroll e scrollTop:>> ', e.detail.scrollTop)
+      // console.log('scroll e scrollTop:>> ', e.detail.scrollTop)
       const _top = e.detail.scrollTop < 0 ? 0 : e.detail.scrollTop
       scrollTop.value = _top
     }
