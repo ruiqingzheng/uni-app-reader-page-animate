@@ -29,3 +29,12 @@ export function mockData(): Array<ILine> {
   }, [] as ILine[])
   return _data
 }
+
+export interface IScrollDetail {
+  scrollLeft: number
+  scrollTop: number
+  scrollHeight: number
+  scrollWidth: number
+  deltaX: number
+  deltaY: number
+}
